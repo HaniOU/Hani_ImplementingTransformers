@@ -41,6 +41,7 @@ def compare_tokenizers():
     custom_tokenizer, _ = train_custom_bpe(corpus)
     
     hf_tokenizer = train_huggingface_bpe(corpus)    
+    #print(hf_tokenizer.get_vocab_size())
 
     print()
     test_sentence = "Machine learning is a subset of artificial intelligence."

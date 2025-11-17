@@ -1,6 +1,9 @@
 import re
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from collections import defaultdict, Counter
+import os
+from transformers import GPT2Tokenizer
+from tokenizers import Tokenizer, models, trainers, pre_tokenizers
 
 
 class BPETokenizer:
@@ -124,3 +127,29 @@ class BPETokenizer:
         
         return tokens
 
+class GPT2BPETokenizer:
+    def __init__(self, 
+                 corpus: Optional[List[str]]=None, 
+                 vocab_size: int=50000, 
+                 special_tokens: Optional[List[str]]=None,
+                 artifact_dir: str="./tokenizer_artifacts"):
+        if special_tokens is None:
+            special_tokens = ["<unk>", "<pad>", "<s>", "</s>"]
+        self.artifact_dir = artifact_dir
+        os.makedirs(artifact_dir, exist_ok=True)
+        tk = Tokenizer(models.BPE(unk_token="<unk>"))
+        tk.pre_tokenizer = pre_tokenizers.Whitespace()
+        trainer = trainers.BpeTrainer(vocab_size=vocab_size, special_tokens=special_tokens)
+        tk.train_from_iterator(corpus, trainer)
+        tk.model.save(artifact_dir)  # Erzeugt vocab.json + merges.txt
+        self.tokenizer = GPT2Tokenizer.from_pretrained(artifact_dir, 
+                                                        unk_token="<unk>", pad_token="<pad>", bos_token="<s>", eos_token="</s>")
+    def encode(self, text: str, **kwargs):
+        # Gibt token ids zurück
+        return self.tokenizer.encode(text, **kwargs)
+    def decode(self, ids: List[int], **kwargs):
+        return self.tokenizer.decode(ids, **kwargs)
+    def get_vocab(self):
+        return self.tokenizer.get_vocab()
+    def get_vocab_size(self):
+        return self.tokenizer.vocab_size
