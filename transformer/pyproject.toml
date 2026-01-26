@@ -13,7 +13,8 @@ dependencies = [
     "torchaudio (>=2.9.0,<3.0.0)",
     "datasets (>=4.2.0,<5.0.0)",
     "tokenizers (>=0.22.1,<0.23.0)",
-    "transformers (>=4.57.1,<5.0.0)"
+    "transformers (>=4.57.1,<5.0.0)",
+    "ipykernel (>=7.1.0,<8.0.0)"
 ]
 
 [tool.poetry]
@@ -27,3 +28,6 @@ build-backend = "poetry.core.masonry.api"
 dev = [
     "pytest (>=8.4.2,<9.0.0)"
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

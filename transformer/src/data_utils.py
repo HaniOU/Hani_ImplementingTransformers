@@ -1,6 +1,7 @@
 import re
-from typing import Tuple
+from typing import Tuple, List, Dict
 import html
+import torch
 
 WHITELIST = "abcdefghijklmnopqrstuvwxyz ÄÖÜäöüß ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?()[]{}:;-&$@#%£€/\\|_+*¥"
 
@@ -27,3 +28,67 @@ def clean_text_pair(src: str, tgt: str, min_len: int = 5, max_len: int = 64, len
     if r > len_ratio or (1/r) > len_ratio:
         return None
     return src_clean, tgt_clean
+
+
+def collate_batch(batch: List[Dict], pad_idx: int = 0, bos_idx: int = 1, eos_idx: int = 2) -> Dict[str, torch.Tensor]:
+    """
+    Collate function for batching translation data with padding.
+    
+    Args:
+        batch: List of dicts with 'src_ids' and 'tgt_ids'
+        pad_idx: Padding token index
+        bos_idx: Beginning of sequence token index  
+        eos_idx: End of sequence token index
+    
+    Returns:
+        Dictionary with batched and padded tensors:
+            - src: Source sequences (batch_size, max_src_len)
+            - tgt_input: Target input sequences with BOS (batch_size, max_tgt_len)
+            - tgt_output: Target output sequences with EOS (batch_size, max_tgt_len)
+            - src_mask: Source padding mask (batch_size, max_src_len)
+            - tgt_mask: Target padding mask (batch_size, max_tgt_len)
+    """
+    src_batch = []
+    tgt_input_batch = []
+    tgt_output_batch = []
+    
+    for item in batch:
+        src_ids = item['src_ids']
+        tgt_ids = item['tgt_ids']
+        
+        # Add BOS and EOS tokens
+        src_batch.append(src_ids)
+        tgt_input_batch.append([bos_idx] + tgt_ids)  # BOS + target
+        tgt_output_batch.append(tgt_ids + [eos_idx])  # target + EOS
+    
+    # Find max lengths
+    max_src_len = max(len(s) for s in src_batch)
+    max_tgt_len = max(len(t) for t in tgt_input_batch)
+    
+    # Pad sequences
+    src_padded = []
+    tgt_input_padded = []
+    tgt_output_padded = []
+    src_masks = []
+    tgt_masks = []
+    
+    for src, tgt_in, tgt_out in zip(src_batch, tgt_input_batch, tgt_output_batch):
+        # Pad source
+        src_len = len(src)
+        src_padded.append(src + [pad_idx] * (max_src_len - src_len))
+        src_masks.append([1] * src_len + [0] * (max_src_len - src_len))
+        
+        # Pad target
+        tgt_len = len(tgt_in)
+        tgt_input_padded.append(tgt_in + [pad_idx] * (max_tgt_len - tgt_len))
+        tgt_output_padded.append(tgt_out + [pad_idx] * (max_tgt_len - tgt_len))
+        tgt_masks.append([1] * tgt_len + [0] * (max_tgt_len - tgt_len))
+    
+    return {
+        'src': torch.tensor(src_padded, dtype=torch.long),
+        'tgt_input': torch.tensor(tgt_input_padded, dtype=torch.long),
+        'tgt_output': torch.tensor(tgt_output_padded, dtype=torch.long),
+        'src_mask': torch.tensor(src_masks, dtype=torch.long),
+        'tgt_mask': torch.tensor(tgt_masks, dtype=torch.long)
+    }
+
