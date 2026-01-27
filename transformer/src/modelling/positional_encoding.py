@@ -21,3 +21,42 @@ class PositionalEncoding(nn.Module):
         seq_len = x.size(1)
         # add positional encoding (broadcast across batch)
         return x + self.pe[:, :seq_len, :]
+
+
+class RotaryPositionalEmbedding(nn.Module):
+    def __init__(self, dim, max_seq_len=5000, base=10000):
+        super().__init__()
+        self.dim = dim
+        self.max_seq_len = max_seq_len
+        self.base = base
+        
+        inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
+        self.register_buffer('inv_freq', inv_freq)
+        
+        self._build_cache(max_seq_len)
+    
+    def _build_cache(self, seq_len):
+        t = torch.arange(seq_len, device=self.inv_freq.device, dtype=self.inv_freq.dtype)
+        freqs = torch.outer(t, self.inv_freq)
+        emb = torch.cat((freqs, freqs), dim=-1)
+        self.register_buffer('cos_cached', emb.cos().unsqueeze(0).unsqueeze(0))
+        self.register_buffer('sin_cached', emb.sin().unsqueeze(0).unsqueeze(0))
+    
+    def _rotate_half(self, x):
+        x1, x2 = x[..., :x.shape[-1]//2], x[..., x.shape[-1]//2:]
+        return torch.cat((-x2, x1), dim=-1)
+    
+    def forward(self, q, k, seq_len=None):
+        if seq_len is None:
+            seq_len = q.shape[2]
+        
+        if seq_len > self.cos_cached.shape[2]:
+            self._build_cache(seq_len)
+        
+        cos = self.cos_cached[:, :, :seq_len, :]
+        sin = self.sin_cached[:, :, :seq_len, :]
+        
+        q_embed = (q * cos) + (self._rotate_half(q) * sin)
+        k_embed = (k * cos) + (self._rotate_half(k) * sin)
+        
+        return q_embed, k_embed

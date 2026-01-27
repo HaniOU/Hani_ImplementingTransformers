@@ -27,16 +27,21 @@ class TransformerModel(nn.Module):
         num_decoder_layers: int = 6,
         dim_feedforward: int = 2048,
         dropout: float = 0.1,
-        max_len: int = 5000
+        max_len: int = 5000,
+        use_rope: bool = False
     ):
         super().__init__()
         
         self.d_model = d_model
         self.vocab_size = vocab_size
+        self.use_rope = use_rope
         
         self.embedding = WordEmbedding(vocab_size, d_model)
         
-        self.positional_encoding = PositionalEncoding(d_model, max_len)
+        if not use_rope:
+            self.positional_encoding = PositionalEncoding(d_model, max_len)
+        else:
+            self.positional_encoding = None
         
         self.dropout = nn.Dropout(dropout)
         
@@ -45,7 +50,9 @@ class TransformerModel(nn.Module):
                 input_dim=d_model,
                 num_heads=n_heads,
                 feature_dim=dim_feedforward,
-                dropout=dropout
+                dropout=dropout,
+                use_rope=use_rope,
+                max_seq_len=max_len
             )
             for _ in range(num_encoder_layers)
         ])
@@ -55,7 +62,9 @@ class TransformerModel(nn.Module):
                 input_dim=d_model,
                 num_heads=n_heads,
                 feature_dim=dim_feedforward,
-                dropout=dropout
+                dropout=dropout,
+                use_rope=use_rope,
+                max_seq_len=max_len
             )
             for _ in range(num_decoder_layers)
         ])
@@ -78,9 +87,9 @@ class TransformerModel(nn.Module):
         src_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
 
-
         x = self.embedding(src) * math.sqrt(self.d_model)
-        x = self.positional_encoding(x)
+        if self.positional_encoding is not None:
+            x = self.positional_encoding(x)
         x = self.dropout(x)
         
         for encoder_layer in self.encoder_layers:
@@ -97,7 +106,8 @@ class TransformerModel(nn.Module):
     ) -> torch.Tensor:
 
         x = self.embedding(tgt) * math.sqrt(self.d_model)
-        x = self.positional_encoding(x)
+        if self.positional_encoding is not None:
+            x = self.positional_encoding(x)
         x = self.dropout(x)
         
         for decoder_layer in self.decoder_layers:

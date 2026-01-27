@@ -21,14 +21,18 @@ class BaseTransformerLayer(nn.Module):
         input_dim: int, 
         num_heads: int, 
         feature_dim: int, 
-        dropout: float = 0.1
+        dropout: float = 0.1,
+        use_rope: bool = False,
+        max_seq_len: int = 5000
     ):
         super().__init__()
         
         self.self_attention = MultiHeadAttention(
             embedding_dim=input_dim,
             num_heads=num_heads,
-            mask_future=False
+            mask_future=False,
+            use_rope=use_rope,
+            max_seq_len=max_seq_len
         )
         
         self.feature_transformation = PositionWiseFeedForward(
@@ -65,20 +69,26 @@ class TransformerDecoderLayer(nn.Module):
         input_dim: int,
         num_heads: int,
         feature_dim: int,
-        dropout: float = 0.1
+        dropout: float = 0.1,
+        use_rope: bool = False,
+        max_seq_len: int = 5000
     ):
         super().__init__()
         
         self.self_attention = MultiHeadAttention(
             embedding_dim=input_dim,
             num_heads=num_heads,
-            mask_future=True
+            mask_future=True,
+            use_rope=use_rope,
+            max_seq_len=max_seq_len
         )
         
         self.encoder_attention = MultiHeadAttention(
             embedding_dim=input_dim,
             num_heads=num_heads,
-            mask_future=False
+            mask_future=False,
+            use_rope=False,  # Cross-attention typically doesn't use RoPE
+            max_seq_len=max_seq_len
         )
         
         self.feature_transformation = PositionWiseFeedForward(

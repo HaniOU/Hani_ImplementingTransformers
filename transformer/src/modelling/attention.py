@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import math
 from typing import Optional
 
+from .positional_encoding import RotaryPositionalEmbedding
+
 
 class Attention(nn.Module):
     def __init__(self, mask_future: bool = False):
@@ -41,7 +43,14 @@ class Attention(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, embedding_dim: int, num_heads: int, mask_future: bool = False):
+    def __init__(
+        self, 
+        embedding_dim: int, 
+        num_heads: int, 
+        mask_future: bool = False,
+        use_rope: bool = False,
+        max_seq_len: int = 5000
+    ):
         super().__init__()
         
         assert embedding_dim % num_heads == 0, "embedding_dim must be divisible by num_heads"
@@ -50,6 +59,7 @@ class MultiHeadAttention(nn.Module):
         self.num_heads = num_heads
         self.head_dim = embedding_dim // num_heads
         self.mask_future = mask_future
+        self.use_rope = use_rope
         
         self.query_transform = nn.Linear(embedding_dim, embedding_dim, bias=False)
         self.key_transform = nn.Linear(embedding_dim, embedding_dim, bias=False)
@@ -57,7 +67,8 @@ class MultiHeadAttention(nn.Module):
         
         self.output_transform = nn.Linear(embedding_dim, embedding_dim, bias=False)
         
-        self.attention = Attention(mask_future=mask_future)
+        if use_rope:
+            self.rope = RotaryPositionalEmbedding(self.head_dim, max_seq_len)
         
     def forward(
         self,
@@ -71,29 +82,32 @@ class MultiHeadAttention(nn.Module):
         seq_len_q = query.size(1)
         seq_len_k = key.size(1)
         
-        Q = self.query_transform(query)  # (batch, seq_len_q, embedding_dim)
-        K = self.key_transform(key)      # (batch, seq_len_k, embedding_dim)
-        V = self.value_transform(value)  # (batch, seq_len_v, embedding_dim)
+        Q = self.query_transform(query)
+        K = self.key_transform(key)
+        V = self.value_transform(value)
             
-        Q = Q.view(batch_size, seq_len_q, self.num_heads, self.head_dim)
-        K = K.view(batch_size, seq_len_k, self.num_heads, self.head_dim)
-        V = V.view(batch_size, seq_len_k, self.num_heads, self.head_dim)
+        Q = Q.view(batch_size, seq_len_q, self.num_heads, self.head_dim).transpose(1, 2)
+        K = K.view(batch_size, seq_len_k, self.num_heads, self.head_dim).transpose(1, 2)
+        V = V.view(batch_size, seq_len_k, self.num_heads, self.head_dim).transpose(1, 2)
         
-        Q = Q.transpose(1, 2)
-        K = K.transpose(1, 2)
-        V = V.transpose(1, 2)
+        if self.use_rope:
+            Q, K = self.rope(Q, K, seq_len=max(seq_len_q, seq_len_k))
         
-        Q = Q.contiguous().view(batch_size * self.num_heads, seq_len_q, self.head_dim)
-        K = K.contiguous().view(batch_size * self.num_heads, seq_len_k, self.head_dim)
-        V = V.contiguous().view(batch_size * self.num_heads, seq_len_k, self.head_dim)
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.head_dim)
+        
+        if self.mask_future:
+            causal_mask = torch.tril(torch.ones(seq_len_q, seq_len_k, device=query.device))
+            scores = scores.masked_fill(causal_mask == 0, float('-inf'))
         
         if attention_mask is not None:
-            attention_mask = attention_mask.unsqueeze(1).repeat(1, self.num_heads, 1)
-            attention_mask = attention_mask.view(batch_size * self.num_heads, -1)
+            attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
+            scores = scores.masked_fill(attention_mask == 0, float('-inf'))
         
-        attention_output = self.attention(Q, K, V, attention_mask)
+        attention_weights = F.softmax(scores, dim=-1)
+        attention_weights = torch.nan_to_num(attention_weights, nan=0.0)
         
-        attention_output = attention_output.view(batch_size, self.num_heads, seq_len_q, self.head_dim)
+        attention_output = torch.matmul(attention_weights, V)
+        
         attention_output = attention_output.transpose(1, 2).contiguous()
         attention_output = attention_output.view(batch_size, seq_len_q, self.embedding_dim)
         
