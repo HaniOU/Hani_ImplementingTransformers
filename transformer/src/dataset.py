@@ -3,10 +3,6 @@ from torch.utils.data import Dataset
 
 class TranslationDataset(Dataset):
     def __init__(self, pairs, tokenizer):
-        """
-        pairs: list of (src, tgt) cleaned text tuples
-        tokenizer: tokenizer instance with encode method
-        """
         self.pairs = pairs
         self.tokenizer = tokenizer
 

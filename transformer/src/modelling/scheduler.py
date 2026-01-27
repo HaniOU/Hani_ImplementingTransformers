@@ -4,17 +4,6 @@ from typing import Optional
 
 
 class NoamScheduler(_LRScheduler):
-    """
-    Formula:
-        lrate = d_model^(-0.5) * min(step_num^(-0.5), step_num * warmup_steps^(-1.5))
-    
-    Args:
-        optimizer: Wrapped optimizer
-        d_model: Model dimension (used for scaling)
-        warmup_steps: Number of warmup steps
-        factor: Multiplicative factor (default: 1.0)
-        last_epoch: The index of last epoch (default: -1)
-    """
     
     def __init__(
         self,
@@ -32,14 +21,8 @@ class NoamScheduler(_LRScheduler):
         super().__init__(optimizer, last_epoch)
     
     def get_lr(self):
-        """
-        Returns:
-            List of learning rates for each parameter group
-        """
-        # Step is 1-indexed (self._step_count starts at 1 after first step())
         step = max(1, self.last_epoch + 1)
         
-        # Noam formula: d_model^(-0.5) * min(step^(-0.5), step * warmup_steps^(-1.5))
         scale = self.d_model ** (-0.5)
         lr = scale * min(step ** (-0.5), step * self.warmup_steps ** (-1.5))
         lr = lr * self.factor
@@ -48,13 +31,7 @@ class NoamScheduler(_LRScheduler):
 
 
 class WarmupScheduler(_LRScheduler):
-    """
-    Args:
-        optimizer: Wrapped optimizer
-        warmup_steps: Number of warmup steps
-        last_epoch: The index of last epoch (default: -1)
-    """
-    
+
     def __init__(
         self,
         optimizer: torch.optim.Optimizer,
@@ -65,17 +42,11 @@ class WarmupScheduler(_LRScheduler):
         super().__init__(optimizer, last_epoch)
     
     def get_lr(self):
-        """
-        Returns:
-            List of learning rates for each parameter group
-        """
         step = max(1, self.last_epoch + 1)
         
         if step < self.warmup_steps:
-            # Linear warmup
             warmup_factor = step / self.warmup_steps
         else:
-            # Constant learning rate after warmup
             warmup_factor = 1.0
         
         return [base_lr * warmup_factor for base_lr in self.base_lrs]
@@ -88,17 +59,7 @@ def configure_optimizers(
     betas: tuple = (0.9, 0.98),
     eps: float = 1e-9
 ) -> torch.optim.AdamW:
-    """
-    Args:
-        model: The model to optimize
-        learning_rate: Learning rate
-        weight_decay: Weight decay coefficient
-        betas: Adam betas (default from the paper: (0.9, 0.98))
-        eps: Adam epsilon (default from the paper: 1e-9)
-    
-    Returns:
-        Configured AdamW optimizer
-    """
+
     decay_params = []
     no_decay_params = []
     
@@ -137,15 +98,7 @@ def get_scheduler(
     scheduler_type: str = 'noam',
     **kwargs
 ):
-    """
-    Args:
-        optimizer: The optimizer to wrap
-        scheduler_type: Type of scheduler ('noam' or 'warmup')
-        **kwargs: Additional arguments for the scheduler
-    
-    Returns:
-        Learning rate scheduler
-    """
+
     if scheduler_type == 'noam':
         return NoamScheduler(optimizer, **kwargs)
     elif scheduler_type == 'warmup':

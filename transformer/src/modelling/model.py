@@ -12,25 +12,11 @@ class WordEmbedding(nn.Module):
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embedding_dim)
 
     def forward(self, x):
-        """
-        x: Tensor of shape (..., ) with token ids
-        returns: Tensor of shape (..., embedding_dim)
-        """
+     
         return self.embedding(x)
 
 
 class TransformerModel(nn.Module):
-    """
-    Args:
-        vocab_size: Size of the vocabulary
-        d_model: Dimensionality of the embedding layer
-        n_heads: Number of heads in the multi-head attention layers
-        num_encoder_layers: Number of encoder layers
-        num_decoder_layers: Number of decoder layers
-        dim_feedforward: Dimensionality of the feedforward layer
-        dropout: Dropout probability
-        max_len: Maximum length of the input sequence
-    """
     
     def __init__(
         self,
@@ -100,13 +86,11 @@ class TransformerModel(nn.Module):
         Returns:
             Encoder output (batch_size, src_seq_len, d_model)
         """
-        # Embedding + positional encoding
-        # Scale embeddings by sqrt(d_model) as in the paper (Section 3.4)
+
         x = self.embedding(src) * math.sqrt(self.d_model)
         x = self.positional_encoding(x)
         x = self.dropout(x)
         
-        # Pass through encoder layers
         for encoder_layer in self.encoder_layers:
             x = encoder_layer(x, attention_mask=src_mask)
         
@@ -119,16 +103,6 @@ class TransformerModel(nn.Module):
         tgt_mask: Optional[torch.Tensor] = None,
         src_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """
-        Args:
-            tgt: Target sequence (batch_size, tgt_seq_len)
-            encoder_output: Encoder output (batch_size, src_seq_len, d_model)
-            tgt_mask: Target mask (batch_size, tgt_seq_len)
-            src_mask: Source mask (batch_size, src_seq_len)
-            
-        Returns:
-            Decoder output (batch_size, tgt_seq_len, d_model)
-        """
 
         x = self.embedding(tgt) * math.sqrt(self.d_model)
         x = self.positional_encoding(x)
@@ -151,16 +125,7 @@ class TransformerModel(nn.Module):
         src_mask: Optional[torch.Tensor] = None,
         tgt_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """
-        Args:
-            src: Source sequence (batch_size, src_seq_len)
-            tgt: Target sequence (batch_size, tgt_seq_len)
-            src_mask: Source mask (batch_size, src_seq_len)
-            tgt_mask: Target mask (batch_size, tgt_seq_len)
-            
-        Returns:
-            Output logits (batch_size, tgt_seq_len, vocab_size)
-        """
+
 
         encoder_output = self.encode(src, src_mask)
         
