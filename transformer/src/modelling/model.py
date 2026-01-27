@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import math
-from typing import Optional
+from typing import Optional, List
 from .positional_encoding import PositionalEncoding
 from .functional import BaseTransformerLayer, TransformerDecoderLayer
 
@@ -68,7 +68,6 @@ class TransformerModel(nn.Module):
         self._init_parameters()
     
     def _init_parameters(self):
-        """Initialize parameters using Xavier uniform initialization."""
         for p in self.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
@@ -78,14 +77,7 @@ class TransformerModel(nn.Module):
         src: torch.Tensor,
         src_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """
-        Args:
-            src: Source sequence (batch_size, src_seq_len)
-            src_mask: Source mask (batch_size, src_seq_len)
-            
-        Returns:
-            Encoder output (batch_size, src_seq_len, d_model)
-        """
+
 
         x = self.embedding(src) * math.sqrt(self.d_model)
         x = self.positional_encoding(x)
@@ -126,7 +118,6 @@ class TransformerModel(nn.Module):
         tgt_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
 
-
         encoder_output = self.encode(src, src_mask)
         
         decoder_output = self.decode(tgt, encoder_output, tgt_mask, src_mask)
@@ -134,5 +125,49 @@ class TransformerModel(nn.Module):
         output = self.output_projection(decoder_output)
         
         return output
+
+    @torch.no_grad()
+    def generate(
+        self,
+        src: torch.Tensor,
+        src_mask: Optional[torch.Tensor] = None,
+        bos_idx: int = 1,
+        eos_idx: int = 2,
+        max_length: int = 100
+    ) -> torch.Tensor:
+
+        self.eval()
+        
+        if src.dim() == 1:
+            src = src.unsqueeze(0)
+        
+        batch_size = src.size(0)
+        device = src.device
+        
+        if src_mask is None:
+            src_mask = torch.ones(batch_size, src.size(1), device=device)
+        
+        encoder_output = self.encode(src, src_mask)
+        
+        generated = torch.full((batch_size, 1), bos_idx, dtype=torch.long, device=device)
+        
+        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
+        
+        for _ in range(max_length - 1):
+            tgt_mask = torch.ones(batch_size, generated.size(1), device=device)
+            decoder_output = self.decode(generated, encoder_output, tgt_mask, src_mask)
+            
+            logits = self.output_projection(decoder_output[:, -1, :])  # (batch_size, vocab_size)
+            
+            next_token = logits.argmax(dim=-1, keepdim=True)  # (batch_size, 1)
+            
+            generated = torch.cat([generated, next_token], dim=1)
+            
+            finished = finished | (next_token.squeeze(-1) == eos_idx)
+            
+            if finished.all():
+                break
+        
+        return generated
 
 
