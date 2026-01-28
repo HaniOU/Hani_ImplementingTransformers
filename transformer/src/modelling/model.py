@@ -28,13 +28,15 @@ class TransformerModel(nn.Module):
         dim_feedforward: int = 2048,
         dropout: float = 0.1,
         max_len: int = 5000,
-        use_rope: bool = False
+        use_rope: bool = False,
+        use_swiglu: bool = False
     ):
         super().__init__()
         
         self.d_model = d_model
         self.vocab_size = vocab_size
         self.use_rope = use_rope
+        self.use_swiglu = use_swiglu
         
         self.embedding = WordEmbedding(vocab_size, d_model)
         
@@ -52,7 +54,8 @@ class TransformerModel(nn.Module):
                 feature_dim=dim_feedforward,
                 dropout=dropout,
                 use_rope=use_rope,
-                max_seq_len=max_len
+                max_seq_len=max_len,
+                use_swiglu=use_swiglu
             )
             for _ in range(num_encoder_layers)
         ])
@@ -64,7 +67,8 @@ class TransformerModel(nn.Module):
                 feature_dim=dim_feedforward,
                 dropout=dropout,
                 use_rope=use_rope,
-                max_seq_len=max_len
+                max_seq_len=max_len,
+                use_swiglu=use_swiglu
             )
             for _ in range(num_decoder_layers)
         ])

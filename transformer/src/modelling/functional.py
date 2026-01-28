@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from typing import Optional
 from .attention import MultiHeadAttention
 
@@ -15,6 +16,18 @@ class PositionWiseFeedForward(nn.Module):
         return self.linear2(torch.relu(self.linear1(x)))
 
 
+class SwiGLUFeedForward(nn.Module):
+    def __init__(self, input_dim: int, feature_dim: int):
+        super().__init__()
+        
+        self.w_gate = nn.Linear(input_dim, feature_dim, bias=False)
+        self.w_up = nn.Linear(input_dim, feature_dim, bias=False)
+        self.w_down = nn.Linear(feature_dim, input_dim, bias=False)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.w_down(F.silu(self.w_gate(x)) * self.w_up(x))
+
+
 class BaseTransformerLayer(nn.Module): 
     def __init__(
         self, 
@@ -23,7 +36,8 @@ class BaseTransformerLayer(nn.Module):
         feature_dim: int, 
         dropout: float = 0.1,
         use_rope: bool = False,
-        max_seq_len: int = 5000
+        max_seq_len: int = 5000,
+        use_swiglu: bool = False
     ):
         super().__init__()
         
@@ -35,10 +49,16 @@ class BaseTransformerLayer(nn.Module):
             max_seq_len=max_seq_len
         )
         
-        self.feature_transformation = PositionWiseFeedForward(
-            input_dim=input_dim,
-            feature_dim=feature_dim
-        )
+        if use_swiglu:
+            self.feature_transformation = SwiGLUFeedForward(
+                input_dim=input_dim,
+                feature_dim=feature_dim
+            )
+        else:
+            self.feature_transformation = PositionWiseFeedForward(
+                input_dim=input_dim,
+                feature_dim=feature_dim
+            )
         
         self.layer_norm_1 = nn.LayerNorm(input_dim)
         self.layer_norm_2 = nn.LayerNorm(input_dim)
@@ -71,7 +91,8 @@ class TransformerDecoderLayer(nn.Module):
         feature_dim: int,
         dropout: float = 0.1,
         use_rope: bool = False,
-        max_seq_len: int = 5000
+        max_seq_len: int = 5000,
+        use_swiglu: bool = False
     ):
         super().__init__()
         
@@ -91,10 +112,16 @@ class TransformerDecoderLayer(nn.Module):
             max_seq_len=max_seq_len
         )
         
-        self.feature_transformation = PositionWiseFeedForward(
-            input_dim=input_dim,
-            feature_dim=feature_dim
-        )
+        if use_swiglu:
+            self.feature_transformation = SwiGLUFeedForward(
+                input_dim=input_dim,
+                feature_dim=feature_dim
+            )
+        else:
+            self.feature_transformation = PositionWiseFeedForward(
+                input_dim=input_dim,
+                feature_dim=feature_dim
+            )
         
         self.layer_norm_1 = nn.LayerNorm(input_dim)
         self.layer_norm_2 = nn.LayerNorm(input_dim)
