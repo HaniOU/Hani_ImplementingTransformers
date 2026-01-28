@@ -137,7 +137,7 @@ class TransformerModel(nn.Module):
         return output
 
     @torch.no_grad()
-    def generate(
+    def generate_greedy(
         self,
         src: torch.Tensor,
         src_mask: Optional[torch.Tensor] = None,
@@ -145,7 +145,6 @@ class TransformerModel(nn.Module):
         eos_idx: int = 2,
         max_length: int = 100
     ) -> torch.Tensor:
-
         self.eval()
         
         if src.dim() == 1:
@@ -167,9 +166,9 @@ class TransformerModel(nn.Module):
             tgt_mask = torch.ones(batch_size, generated.size(1), device=device)
             decoder_output = self.decode(generated, encoder_output, tgt_mask, src_mask)
             
-            logits = self.output_projection(decoder_output[:, -1, :])  # (batch_size, vocab_size)
+            logits = self.output_projection(decoder_output[:, -1, :])
             
-            next_token = logits.argmax(dim=-1, keepdim=True)  # (batch_size, 1)
+            next_token = logits.argmax(dim=-1, keepdim=True)
             
             generated = torch.cat([generated, next_token], dim=1)
             
@@ -179,5 +178,132 @@ class TransformerModel(nn.Module):
                 break
         
         return generated
+
+    @torch.no_grad()
+    def generate(
+        self,
+        src: torch.Tensor,
+        src_mask: Optional[torch.Tensor] = None,
+        bos_idx: int = 1,
+        eos_idx: int = 2,
+        pad_idx: int = 0,
+        max_length: int = 100,
+        beam_size: int = 5,
+        length_penalty: float = 0.6
+    ) -> torch.Tensor:
+        self.eval()
+        
+        if src.dim() == 1:
+            src = src.unsqueeze(0)
+        
+        batch_size = src.size(0)
+        device = src.device
+        
+        if batch_size > 1:
+            results = []
+            for i in range(batch_size):
+                single_src = src[i:i+1]
+                single_mask = src_mask[i:i+1] if src_mask is not None else None
+                result = self._beam_search_single(
+                    single_src, single_mask, bos_idx, eos_idx,
+                    max_length, beam_size, length_penalty
+                )
+                results.append(result)
+            
+            max_len = max(r.size(1) for r in results)
+            padded = torch.full((batch_size, max_len), pad_idx, dtype=torch.long, device=device)
+            for i, r in enumerate(results):
+                padded[i, :r.size(1)] = r[0]
+            return padded
+        
+        return self._beam_search_single(
+            src, src_mask, bos_idx, eos_idx,
+            max_length, beam_size, length_penalty
+        )
+    
+    def _beam_search_single(
+        self,
+        src: torch.Tensor,
+        src_mask: Optional[torch.Tensor],
+        bos_idx: int,
+        eos_idx: int,
+        max_length: int,
+        beam_size: int,
+        length_penalty: float
+    ) -> torch.Tensor:
+        device = src.device
+        
+        if src_mask is None:
+            src_mask = torch.ones(1, src.size(1), device=device)
+        
+        encoder_output = self.encode(src, src_mask)
+        
+        encoder_output = encoder_output.repeat(beam_size, 1, 1)
+        src_mask = src_mask.repeat(beam_size, 1)
+        
+        beams = torch.full((beam_size, 1), bos_idx, dtype=torch.long, device=device)
+        beam_scores = torch.zeros(beam_size, device=device)
+        beam_scores[1:] = float('-inf')
+        
+        finished_beams = []
+        finished_scores = []
+        
+        for step in range(max_length - 1):
+            tgt_mask = torch.ones(beams.size(0), beams.size(1), device=device)
+            decoder_output = self.decode(beams, encoder_output[:beams.size(0)], tgt_mask, src_mask[:beams.size(0)])
+            
+            logits = self.output_projection(decoder_output[:, -1, :])
+            log_probs = torch.log_softmax(logits, dim=-1)
+            
+            vocab_size = log_probs.size(-1)
+            next_scores = beam_scores.unsqueeze(1) + log_probs
+            next_scores = next_scores.view(-1)
+            
+            num_beams = beams.size(0)
+            top_scores, top_indices = next_scores.topk(min(2 * beam_size, next_scores.size(0)), dim=0)
+            
+            beam_indices = top_indices // vocab_size
+            token_indices = top_indices % vocab_size
+            
+            new_beams = []
+            new_scores = []
+            
+            for score, beam_idx, token_idx in zip(top_scores, beam_indices, token_indices):
+                beam_idx = beam_idx.item()
+                token_idx = token_idx.item()
+                score = score.item()
+                
+                new_beam = torch.cat([beams[beam_idx], torch.tensor([[token_idx]], device=device)], dim=1)
+                
+                if token_idx == eos_idx:
+                    length = new_beam.size(1)
+                    normalized_score = score / ((5 + length) / 6) ** length_penalty
+                    finished_beams.append(new_beam)
+                    finished_scores.append(normalized_score)
+                else:
+                    new_beams.append(new_beam)
+                    new_scores.append(score)
+                
+                if len(new_beams) >= beam_size:
+                    break
+            
+            if len(new_beams) == 0:
+                break
+            
+            beams = torch.cat(new_beams, dim=0)
+            beam_scores = torch.tensor(new_scores, device=device)
+            
+            if len(finished_beams) >= beam_size:
+                break
+        
+        if len(finished_beams) == 0:
+            for i in range(beams.size(0)):
+                length = beams[i].size(0)
+                normalized_score = beam_scores[i].item() / ((5 + length) / 6) ** length_penalty
+                finished_beams.append(beams[i:i+1])
+                finished_scores.append(normalized_score)
+        
+        best_idx = max(range(len(finished_scores)), key=lambda i: finished_scores[i])
+        return finished_beams[best_idx]
 
 

@@ -1,0 +1,37 @@
+{
+  "os": "macOS-15.7.3-arm64-arm-64bit-Mach-O",
+  "python": "CPython 3.13.11",
+  "startedAt": "2026-01-27T13:41:54.412073Z",
+  "program": "/Users/hani/Documents/uni/semester1/Hani_ImplementingTransformers/transformer/src/run/main.ipynb",
+  "codePath": "/Users/hani/Documents/uni/semester1/Hani_ImplementingTransformers/transformer/src/run/main.ipynb",
+  "codePathLocal": "main.ipynb",
+  "git": {
+    "remote": "git@github.com:HaniOU/Hani_ImplementingTransformers.git",
+    "commit": "32cae80d3e1906e021727df23c724263555c3df4"
+  },
+  "email": "ouraghene12@gmail.com",
+  "root": "/Users/hani/Documents/uni/semester1/Hani_ImplementingTransformers/transformer/src/run",
+  "host": "MacBook-Pro-von-Hani.local",
+  "executable": "/Users/hani/Library/Caches/pypoetry/virtualenvs/transformer-6K1zscZO-py3.13/bin/python",
+  "cpu_count": 14,
+  "cpu_count_logical": 14,
+  "disk": {
+    "/": {
+      "total": "994662584320",
+      "used": "167428644864"
+    }
+  },
+  "memory": {
+    "total": "25769803776"
+  },
+  "apple": {
+    "name": "Apple M4 Pro",
+    "ecpuCores": 4,
+    "pcpuCores": 10,
+    "gpuCores": 20,
+    "memoryGb": 24,
+    "swapTotalBytes": "6442450944",
+    "ramTotalBytes": "25769803776"
+  },
+  "writerId": "lz59zh4pj5wx1io97ctxusob26r1xlsy"
+}
