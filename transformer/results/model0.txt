@@ -1,0 +1,82 @@
+BLEU Score: 0.2992
+
+VOCAB_SIZE = 32000
+D_MODEL = 256               
+N_HEADS = 8
+NUM_ENCODER_LAYERS = 6
+NUM_DECODER_LAYERS = 6
+DIM_FEEDFORWARD = 2048
+DROPOUT = 0.1
+MAX_SEQ_LEN = 128
+
+EPOCHS = 5
+BATCH_SIZE = 32
+LEARNING_RATE = 1.0
+WARMUP_STEPS = 4000
+GRAD_CLIP = 1.0
+WEIGHT_DECAY = 0.01
+
+NUM_TRAIN_SAMPLES = 500_000
+NUM_VAL_SAMPLES = 2500      
+NUM_TEST_SAMPLES = 2500      
+MIN_SEQ_LEN = 5
+MAX_SEQ_LEN_FILTER = 100
+
+31,832,320 Parameters
+
+==================================================
+BLEU SCORE RESULTS
+==================================================
+BLEU Score: 0.2992
+Example Translations:
+======================================================================
+
+Example 1 (BLEU: 2.6280)
+  DE:   28-jähriger koch in san francisco mall tot aufgefunden
+  Pred: sondern in san fontaine port denn in the sibil die the decide die above .
+  Ref:  28-year-old chef found dead at san francisco mall
+
+Example 2 (BLEU: 2.2536)
+  DE:   ein 28-jähriger koch, der vor kurzem nach san francisco gezogen ist, wurde im treppenhaus eines örtlichen einkaufzentrums tot aufgefunden.
+  Pred: ein decide - milliarden bestimmung , i ap san ferien erken ist , eded of le denn of away - in .
+  Ref:  a 28-year-old chef who had recently moved to san francisco was found dead in the stairwell of a local mall this week.
+
+Example 3 (BLEU: 1.1517)
+  DE:   der bruder des opfers sagte aus, dass er sich niemanden vorstellen kann, der ihm schaden wollen würde, endlich ging es bei ihm wieder bergauf.
+  Pred: i beit bür of many a lik it the wach .
+  Ref:  but the victims brother says he cant think of anyone who would want to hurt him, saying, things were finally going well for him.
+
+Example 4 (BLEU: 1.4105)
+  DE:   der am mittwoch morgen in der westfield mall gefundene leichnam wurde als der 28 jahre alte frank galicia aus san francisco identifiziert, teilte die gerichtsmedizinische abteilung in san francisco mit.
+  Pred: i , in guar of aus west fand , ihres gefunden e leich eig her als der decide die above , in individual die aus san fontaine noch , it the rit international die pe in san fontaine .
+  Ref:  the body found at the westfield mall wednesday morning was identified as 28-year-old san francisco resident frank galicia, the san francisco medical examiners office said.
+
+Example 5 (BLEU: 2.4427)
+  DE:   das san francisco police department sagte, dass der tod als mord eingestuft wurde und die ermittlungen am laufen sind.
+  Pred: erhoben san tox tat fü sagte , dass der jüngsten shows is plug of lines her und die the rats sind .
+  Ref:  the san francisco police department said the death was ruled a homicide and an investigation is ongoing.
+
+Example 6 (BLEU: 1.2491)
+  DE:   der bruder des opfers, louis galicia, teilte dem abs sender kgo in san francisco mit, dass frank, der früher als koch in boston gearbeitet hat, vor sechs monaten seinen traumjob als koch im sons & daughters restaurant in san francisco ergattert hatte.
+  Pred: i beit fa the real ents of away ern the cl . the cl is schnell in the icken die the particularly vill , ein at is union subje of the particularly vill .
+  Ref:  the victims brother, louis galicia, told abc station kgo in san francisco that frank, previously a line cook in boston, had landed his dream job as line chef at san franciscos sons & daughters restaurant six months ago.
+
+Example 7 (BLEU: 2.4618)
+  DE:   ein sprecher des sons & daughters sagte, dass sie über seinen tod schockiert und am boden zerstört seien.
+  Pred: ro col ro the cl is schnell in the icken die the particularly .
+  Ref:  a spokesperson for sons & daughters said they were shocked and devastated by his death.
+
+Example 8 (BLEU: 0.0000)
+  DE:   wir sind ein kleines team, das wie eine enge familie arbeitet und wir werden ihn schmerzlich vermissen, sagte der sprecher weiter.
+  Pred: wir sind ein
+  Ref:  we are a small team that operates like a close knit family and he will be dearly missed, the spokesperson said.
+
+Example 9 (BLEU: 2.7197)
+  DE:   unsere gedanken und unser beileid sind in dieser schweren zeit bei franks familie und freunden.
+  Pred: ant ip la item eu liche nisse insgesamt , ip ap le aben of minister at .
+  Ref:  our thoughts and condolences are with franks family and friends at this difficult time.
+
+Example 10 (BLEU: 2.3728)
+  DE:   louis galicia gab an, dass frank zunächst in hostels lebte, aber dass, die dinge für ihn endlich bergauf gingen.
+  Pred: fahr - vorsch , anmerk zunächst in the icken die the particularly .
+  Ref:  louis galicia said frank initially stayed in hostels, but recently, things were finally going well for him.

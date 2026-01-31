@@ -2,6 +2,7 @@ import re
 from typing import Tuple, List, Dict
 import html
 import torch
+from tqdm import tqdm
 
 WHITELIST = "abcdefghijklmnopqrstuvwxyz ÄÖÜäöüß ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?()[]{}:;-&$@#%£€/\\|_+*¥"
 
@@ -70,3 +71,41 @@ def collate_batch(batch: List[Dict], pad_idx: int = 0, bos_idx: int = 1, eos_idx
         'tgt_mask': torch.tensor(tgt_masks, dtype=torch.long)
     }
 
+
+def clean_split(data, max_samples, min_seq_len, max_seq_len_filter, desc="Cleaning"):
+    cleaned = []
+    for item in tqdm(data, desc=desc):
+        if len(cleaned) >= max_samples:
+            break
+        result = clean_text_pair(
+            item['translation']['de'], 
+            item['translation']['en'],
+            min_len=min_seq_len,
+            max_len=max_seq_len_filter
+        )
+        if result:
+            cleaned.append(result)
+    return cleaned
+
+def translate(model, tokenizer, src_text, max_len=50, device="cpu", debug=False):
+    """Übersetzt einen deutschen Satz ins Englische (Beam Search)."""
+    # Source tokenisieren
+    src_ids = tokenizer.encode(src_text)
+    src_tensor = torch.tensor([src_ids], device=device)
+    
+    # Greedy decoding (generate_greedy) - besser für untertrainierte Modelle
+    output_ids = model.generate(
+        src=src_tensor,
+        bos_idx=tokenizer.bos_id,
+        eos_idx=tokenizer.eos_id,
+        max_length=max_len
+    )
+    
+    # Zu Liste konvertieren und dekodieren
+    output_list = output_ids[0].tolist()
+    
+    if debug:
+        print(f"  Raw IDs: {output_list}")
+        print(f"  BOS={tokenizer.bos_id}, EOS={tokenizer.eos_id}, PAD={tokenizer.pad_id}")
+    
+    return tokenizer.decode(output_list)

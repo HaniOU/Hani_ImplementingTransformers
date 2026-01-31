@@ -6,10 +6,7 @@ from typing import Optional, Dict, Any, Callable
 from tqdm import tqdm
 import wandb
 
-
-
 class Trainer:
-
     def __init__(
         self,
         model: nn.Module,
@@ -91,11 +88,7 @@ class Trainer:
             progress_bar.set_postfix({'loss': f'{loss.item():.4f}'})
             
             if self.use_wandb:
-                log_dict = {"train/loss": loss.item(), "train/step": self.step}
-                if self.scheduler is not None:
-                    current_lr = self.scheduler.get_lr()[0] if hasattr(self.scheduler, 'get_lr') else self.optimizer.param_groups[0]['lr']
-                    log_dict["train/learning_rate"] = current_lr
-                wandb.log(log_dict)
+                wandb.log({"train/loss": loss.item(), "train/step": self.step})
         
         avg_loss = total_loss / num_batches
         self.train_losses.append(avg_loss)
@@ -146,11 +139,13 @@ class Trainer:
         train_dataloader: DataLoader,
         val_dataloader: Optional[DataLoader] = None,
         num_epochs: int = 10,
+        start_epoch: int = 1,
         save_path: Optional[str] = None,
         save_extra: Optional[Dict[str, Any]] = None,
-        on_epoch_end: Optional[Callable[[int, float, float], None]] = None
+        best_val_loss: Optional[float] = None,
     ):
-        best_val_loss = float('inf')
+        if best_val_loss is None:
+            best_val_loss = float('inf')
         
         if save_path:
             save_dir = os.path.dirname(save_path)
@@ -158,9 +153,9 @@ class Trainer:
                 os.makedirs(save_dir)
                 print(f"Created checkpoint directory: {save_dir}")
         
-        for epoch in range(1, num_epochs + 1):
+        for epoch in range(start_epoch, start_epoch + num_epochs):
             print(f"\n{'='*50}")
-            print(f"Epoch {epoch}/{num_epochs}")
+            print(f"Epoch {epoch}/{start_epoch + num_epochs - 1}")
             print(f"{'='*50}")
             
             train_loss = self.train_epoch(train_dataloader, epoch)
@@ -170,20 +165,25 @@ class Trainer:
             if val_dataloader is not None:
                 val_loss = self.validate(val_dataloader)
                 print(f"Val Loss: {val_loss:.4f}")
-                
-                if save_path is not None and val_loss < best_val_loss:
+                if val_loss is not None and val_loss < best_val_loss:
                     best_val_loss = val_loss
-                    checkpoint = {
-                        'epoch': epoch,
-                        'model_state_dict': self.model.state_dict(),
-                        'optimizer_state_dict': self.optimizer.state_dict(),
-                        'train_loss': train_loss,
-                        'val_loss': val_loss,
-                    }
-                    if save_extra:
-                        checkpoint.update(save_extra)
-                    torch.save(checkpoint, save_path)
-                    print(f"  ✓ Saved best model (val_loss: {val_loss:.4f})")
+            
+            if save_path is not None:
+                base, ext = os.path.splitext(save_path)
+                epoch_path = f"{base}_{epoch}{ext}"
+                checkpoint = {
+                    'epoch': epoch,
+                    'model_state_dict': self.model.state_dict(),
+                    'optimizer_state_dict': self.optimizer.state_dict(),
+                    'train_loss': train_loss,
+                    'val_loss': val_loss,
+                }
+                if self.scheduler is not None:
+                    checkpoint['scheduler_state_dict'] = self.scheduler.state_dict()
+                if save_extra:
+                    checkpoint.update(save_extra)
+                torch.save(checkpoint, epoch_path)
+                print(f"Saved {os.path.basename(epoch_path)}")
             
             if self.scheduler is not None:
                 current_lr = self.scheduler.get_lr()[0] if hasattr(self.scheduler, 'get_lr') else self.optimizer.param_groups[0]['lr']
@@ -194,9 +194,6 @@ class Trainer:
                 if val_loss is not None:
                     epoch_log["epoch/val_loss"] = val_loss
                 wandb.log(epoch_log)
-            
-            if on_epoch_end is not None:
-                on_epoch_end(epoch, train_loss, val_loss if val_loss else 0.0)
         
         if self.use_wandb:
             wandb.finish()

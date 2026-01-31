@@ -277,7 +277,7 @@ class TransformerModel(nn.Module):
                 token_idx = token_idx.item()
                 score = score.item()
                 
-                new_beam = torch.cat([beams[beam_idx], torch.tensor([[token_idx]], device=device)], dim=1)
+                new_beam = torch.cat([beams[beam_idx:beam_idx+1], torch.tensor([[token_idx]], device=device)], dim=1)
                 
                 if token_idx == eos_idx:
                     length = new_beam.size(1)
