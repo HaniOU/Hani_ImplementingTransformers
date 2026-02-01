@@ -24,5 +24,4 @@ Thumbs.db
 
 .cache/
 
-# wandb local run logs (nicht versionieren – sonst riesige Pushes)
 wandb/

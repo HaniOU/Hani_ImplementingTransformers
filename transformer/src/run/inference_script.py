@@ -14,9 +14,7 @@ from datasets import load_dataset
 from tqdm import tqdm
 
 from modelling.model import TransformerModel
-from modelling.scheduler import NoamScheduler, configure_optimizers
-from modelling.trainer import Trainer
-from data_utils import clean_text_pair, collate_batch, clean_split, translate
+from data_utils import collate_batch, clean_split, translate
 from dataset import TranslationDataset
 from tokenizer import GPT2BPETokenizer
 import sacrebleu
