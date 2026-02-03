@@ -21,7 +21,7 @@ import sacrebleu
 
 
 VOCAB_SIZE = 32000
-D_MODEL = 256               
+D_MODEL = 512              
 N_HEADS = 8
 NUM_ENCODER_LAYERS = 6
 NUM_DECODER_LAYERS = 6
@@ -29,22 +29,22 @@ DIM_FEEDFORWARD = 2048
 DROPOUT = 0.1
 MAX_SEQ_LEN = 128
 
-EPOCHS = 2
-BATCH_SIZE = 32
+EPOCHS = 5
+BATCH_SIZE = 64
 LEARNING_RATE = 1.0
 WARMUP_STEPS = 4000
 GRAD_CLIP = 1.0
 WEIGHT_DECAY = 0.01
 
-NUM_TRAIN_SAMPLES = 500_000
+NUM_TRAIN_SAMPLES = 5_900_000
 NUM_VAL_SAMPLES = 2500      
-NUM_TEST_SAMPLES = 2500      
+NUM_TEST_SAMPLES = 3000      
 MIN_SEQ_LEN = 5
 MAX_SEQ_LEN_FILTER = 100
 
 num_examples = 10
 
-CHECKPOINT_PATH = '../checkpoints/model0.pt'
+CHECKPOINT_PATH = '../checkpoints/best_model_5.pt'
 TOKENIZER_PATH = '../tokenizer_artifacts.json'
 
 if torch.cuda.is_available():

@@ -139,10 +139,8 @@ class Trainer:
         train_dataloader: DataLoader,
         val_dataloader: Optional[DataLoader] = None,
         num_epochs: int = 10,
-        start_epoch: int = 1,
         save_path: Optional[str] = None,
-        save_extra: Optional[Dict[str, Any]] = None,
-        best_val_loss: Optional[float] = None,
+        best_val_loss: Optional[float] = None
     ):
         if best_val_loss is None:
             best_val_loss = float('inf')
@@ -153,9 +151,9 @@ class Trainer:
                 os.makedirs(save_dir)
                 print(f"Created checkpoint directory: {save_dir}")
         
-        for epoch in range(start_epoch, start_epoch + num_epochs):
+        for epoch in range(1, num_epochs+1):
             print(f"\n{'='*50}")
-            print(f"Epoch {epoch}/{start_epoch + num_epochs - 1}")
+            print(f"Epoch {epoch}")
             print(f"{'='*50}")
             
             train_loss = self.train_epoch(train_dataloader, epoch)
@@ -180,8 +178,6 @@ class Trainer:
                 }
                 if self.scheduler is not None:
                     checkpoint['scheduler_state_dict'] = self.scheduler.state_dict()
-                if save_extra:
-                    checkpoint.update(save_extra)
                 torch.save(checkpoint, epoch_path)
                 print(f"Saved {os.path.basename(epoch_path)}")
             

@@ -1,4 +1,4 @@
-BLEU Score: 20.9217 
+BLEU Score: 21.3420
 
 VOCAB_SIZE = 32000
 D_MODEL = 512               
@@ -9,14 +9,14 @@ DIM_FEEDFORWARD = 2048
 DROPOUT = 0.1
 MAX_SEQ_LEN = 128
 
-EPOCHS = 2
+EPOCHS = 5
 BATCH_SIZE = 32
 LEARNING_RATE = 1.0
 WARMUP_STEPS = 4000
 GRAD_CLIP = 1.0
 WEIGHT_DECAY = 0.01
 
-NUM_TRAIN_SAMPLES = 5_000_000
+NUM_TRAIN_SAMPLES = 5_900_000
 NUM_VAL_SAMPLES = 2500      
 NUM_TEST_SAMPLES = 2500      
 MIN_SEQ_LEN = 5
@@ -27,56 +27,56 @@ MAX_SEQ_LEN_FILTER = 100
 ==================================================
 BLEU SCORE RESULTS
 ==================================================
-BLEU Score: 20.9217 
+BLEU Score: 21.3420 
 Example Translations:
 ======================================================================
 
-Example 1 (BLEU: 19.0817)
+Example 1 (BLEU: 18.3603)
   DE:   28-jähriger koch in san francisco mall tot aufgefunden
-  Pred: 28 - year - old chef in san francisco mall dead
+  Pred: 28 - year - old chef san francisco mall tot ed
   Ref:  28-year-old chef found dead at san francisco mall
 
-Example 2 (BLEU: 14.4746)
+Example 2 (BLEU: 25.7487)
   DE:   ein 28-jähriger koch, der vor kurzem nach san francisco gezogen ist, wurde im treppenhaus eines örtlichen einkaufzentrums tot aufgefunden.
-  Pred: a 28 - year - old chef , recently drawn to san francisco , was discovered in the stair case of a local shopping center .
+  Pred: a 28 - year - old chef , who has recently moved to san francisco , was discovered dead in the steps of a local shopping centre .
   Ref:  a 28-year-old chef who had recently moved to san francisco was found dead in the stairwell of a local mall this week.
 
-Example 3 (BLEU: 4.1155)
+Example 3 (BLEU: 7.8444)
   DE:   der bruder des opfers sagte aus, dass er sich niemanden vorstellen kann, der ihm schaden wollen würde, endlich ging es bei ihm wieder bergauf.
-  Pred: the brother of the victim said that he could not imagine anyone who wanted to harm him finally went down hill .
+  Pred: the brother of the victim said that he cannot imagine anyone who would harm him , finally it went up again .
   Ref:  but the victims brother says he cant think of anyone who would want to hurt him, saying, things were finally going well for him.
 
-Example 4 (BLEU: 7.5162)
+Example 4 (BLEU: 9.7409)
   DE:   der am mittwoch morgen in der westfield mall gefundene leichnam wurde als der 28 jahre alte frank galicia aus san francisco identifiziert, teilte die gerichtsmedizinische abteilung in san francisco mit.
-  Pred: the kor nam , found on wednesday morning in the west field mall , was identified as the 28 - year - old frank seattle from san francisco , the court of justice shared medical department in san francisco .
+  Pred: the leich nam found on wednesday morning in the west field mall was identified as the 28 - year - old frank galicia from san francisco .
   Ref:  the body found at the westfield mall wednesday morning was identified as 28-year-old san francisco resident frank galicia, the san francisco medical examiners office said.
 
-Example 5 (BLEU: 32.2821)
+Example 5 (BLEU: 29.9452)
   DE:   das san francisco police department sagte, dass der tod als mord eingestuft wurde und die ermittlungen am laufen sind.
-  Pred: the san francisco police department said that the death was identified as murder and that the investigation is under way .
+  Pred: the san francisco police department said that the death was classified as murder and that the investigations are under way .
   Ref:  the san francisco police department said the death was ruled a homicide and an investigation is ongoing.
 
-Example 6 (BLEU: 20.6823)
+Example 6 (BLEU: 27.4297)
   DE:   der bruder des opfers, louis galicia, teilte dem abs sender kgo in san francisco mit, dass frank, der früher als koch in boston gearbeitet hat, vor sechs monaten seinen traumjob als koch im sons & daughters restaurant in san francisco ergattert hatte.
-  Pred: the brother of the victim , louis seattle , told the abs sender k go in san francisco that frank , who used to work as a chef in boston six months ago , had added his dream job as a chef at the sons & dau gh ters restaurant in san francisco .
+  Pred: the brother of the victim , louis galicia , told the abs sender k go in san francisco that frank , who used to work as a chef in palermo , had given his dream job as a chef at the sons & dau gh ters restaurant in san francisco six months ago .
   Ref:  the victims brother, louis galicia, told abc station kgo in san francisco that frank, previously a line cook in boston, had landed his dream job as line chef at san franciscos sons & daughters restaurant six months ago.
 
-Example 7 (BLEU: 12.6835)
+Example 7 (BLEU: 11.9954)
   DE:   ein sprecher des sons & daughters sagte, dass sie über seinen tod schockiert und am boden zerstört seien.
-  Pred: one speaker of the sons & dau gh ters said that they were shocked by his death and destroyed on the ground .
+  Pred: a speaker of the son & dau gh ters said that they were shocked by his death and destroyed on the ground .
   Ref:  a spokesperson for sons & daughters said they were shocked and devastated by his death.
 
-Example 8 (BLEU: 30.8301)
+Example 8 (BLEU: 29.2247)
   DE:   wir sind ein kleines team, das wie eine enge familie arbeitet und wir werden ihn schmerzlich vermissen, sagte der sprecher weiter.
-  Pred: we are a small team that works like a close family and we will lose it pain fully , said the speaker .
+  Pred: we are a small team that works like a narrow family and we will be pain ful , said the speaker .
   Ref:  we are a small team that operates like a close knit family and he will be dearly missed, the spokesperson said.
 
-Example 9 (BLEU: 28.2539)
+Example 9 (BLEU: 49.8907)
   DE:   unsere gedanken und unser beileid sind in dieser schweren zeit bei franks familie und freunden.
-  Pred: our thoughts and our sympathy are at this difficult time with frank s family and friends .
+  Pred: our thoughts and our condol ences are with frank s family and friends at this difficult time .
   Ref:  our thoughts and condolences are with franks family and friends at this difficult time.
 
-Example 10 (BLEU: 21.2470)
+Example 10 (BLEU: 20.8261)
   DE:   louis galicia gab an, dass frank zunächst in hostels lebte, aber dass, die dinge für ihn endlich bergauf gingen.
-  Pred: louis seattle said that frank initially lived in hostels , but that things finally went up for him .
+  Pred: louis galicia suggested that frank first lived in hostels , but that things finally went up for him .
   Ref:  louis galicia said frank initially stayed in hostels, but recently, things were finally going well for him.

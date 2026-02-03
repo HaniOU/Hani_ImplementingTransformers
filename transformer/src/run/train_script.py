@@ -40,15 +40,14 @@ DROPOUT = 0.1
 MAX_SEQ_LEN = 128
 
 EPOCHS = 5
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 LEARNING_RATE = 1.0
 WARMUP_STEPS = 4000
 GRAD_CLIP = 1.0
 WEIGHT_DECAY = 0.01
 
-NUM_TRAIN_SAMPLES = 5_000_000
-NUM_VAL_SAMPLES = 2500      
-NUM_TEST_SAMPLES = 2500      
+NUM_TRAIN_SAMPLES = 5_900_000
+NUM_VAL_SAMPLES = 2900      
 MIN_SEQ_LEN = 5
 MAX_SEQ_LEN_FILTER = 100
 
@@ -71,9 +70,8 @@ print(f"Dataset loaded: {len(dataset['train'])} train, {len(dataset['validation'
 
 train_pairs = clean_split(dataset['train'], NUM_TRAIN_SAMPLES, min_seq_len=MIN_SEQ_LEN, max_seq_len_filter=MAX_SEQ_LEN_FILTER, desc="Cleaning train")
 val_pairs = clean_split(dataset['validation'], NUM_VAL_SAMPLES, min_seq_len=MIN_SEQ_LEN, max_seq_len_filter=MAX_SEQ_LEN_FILTER, desc="Cleaning val")
-test_pairs = clean_split(dataset['test'], NUM_TEST_SAMPLES, min_seq_len=MIN_SEQ_LEN, max_seq_len_filter=MAX_SEQ_LEN_FILTER, desc="Cleaning test")
 
-print(f"\nCleaned data: {len(train_pairs)} train, {len(val_pairs)} val, {len(test_pairs)} test")
+print(f"\nCleaned data: {len(train_pairs)} train, {len(val_pairs)} val")
 print(f"\nExample pair:")
 print(f"  DE: {train_pairs[0][0]}")
 print(f"  EN: {train_pairs[0][1]}")
@@ -103,16 +101,14 @@ print(f"  Decoded: '{decoded}'")
 
 train_dataset = TranslationDataset(train_pairs, tokenizer, max_len=MAX_SEQ_LEN)
 val_dataset = TranslationDataset(val_pairs, tokenizer, max_len=MAX_SEQ_LEN)
-test_dataset = TranslationDataset(test_pairs, tokenizer, max_len=MAX_SEQ_LEN)
 
 def custom_collate(batch):
     return collate_batch(batch, pad_idx=PAD_IDX, bos_idx=BOS_IDX, eos_idx=EOS_IDX)
 
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=custom_collate)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate)
-test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate)
 
-print(f"Train batches: {len(train_loader)}, Val batches: {len(val_loader)}, Test batches: {len(test_loader)}")
+print(f"Train batches: {len(train_loader)}, Val batches: {len(val_loader)}")
 
 batch = next(iter(train_loader))
 print(f"\nBatch shapes:")
@@ -183,10 +179,9 @@ print("Training setup complete!")
 trainer.train(
     train_dataloader=train_loader,
     val_dataloader=val_loader,
-    num_epochs=num_epochs,
-    start_epoch=start_epoch,
+    num_epochs=EPOCHS,
     save_path=CHECKPOINT_PATH,
-    best_val_loss=best_val_loss,
+    best_val_loss=None
 )
 
 print("\nTraining complete!")
