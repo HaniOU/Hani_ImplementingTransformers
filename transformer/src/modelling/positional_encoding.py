@@ -3,8 +3,9 @@ import torch.nn as nn
 import math
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, embedding_dim, max_seq_len=5000):
+    def __init__(self, embedding_dim, max_seq_len=5000, dropout=0.1):
         super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
 
         pe = torch.zeros(max_seq_len, embedding_dim)
         position = torch.arange(0, max_seq_len, dtype=torch.float).unsqueeze(1)
@@ -20,7 +21,8 @@ class PositionalEncoding(nn.Module):
         # x: (batch, seq_len, embedding_dim)
         seq_len = x.size(1)
         # add positional encoding (broadcast across batch)
-        return x + self.pe[:, :seq_len, :]
+        x = x + self.pe[:, :seq_len, :]
+        return self.dropout(x)
 
 
 class RotaryPositionalEmbedding(nn.Module):

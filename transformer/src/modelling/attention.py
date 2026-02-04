@@ -49,7 +49,8 @@ class MultiHeadAttention(nn.Module):
         num_heads: int, 
         mask_future: bool = False,
         use_rope: bool = False,
-        max_seq_len: int = 5000
+        max_seq_len: int = 5000,
+        dropout: float = 0.1
     ):
         super().__init__()
         
@@ -66,6 +67,8 @@ class MultiHeadAttention(nn.Module):
         self.value_transform = nn.Linear(embedding_dim, embedding_dim, bias=False)
         
         self.output_transform = nn.Linear(embedding_dim, embedding_dim, bias=False)
+        
+        self.attn_dropout = nn.Dropout(dropout)
         
         if use_rope:
             self.rope = RotaryPositionalEmbedding(self.head_dim, max_seq_len)
@@ -97,14 +100,14 @@ class MultiHeadAttention(nn.Module):
         
         if self.mask_future:
             causal_mask = torch.tril(torch.ones(seq_len_q, seq_len_k, device=query.device))
-            scores = scores.masked_fill(causal_mask == 0, float('-inf'))
+            scores = scores.masked_fill(causal_mask == 0, -1e4)
         
         if attention_mask is not None:
             attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
-            scores = scores.masked_fill(attention_mask == 0, float('-inf'))
+            scores = scores.masked_fill(attention_mask == 0, -1e4)
         
         attention_weights = F.softmax(scores, dim=-1)
-        attention_weights = torch.nan_to_num(attention_weights, nan=0.0)
+        attention_weights = self.attn_dropout(attention_weights)
         
         attention_output = torch.matmul(attention_weights, V)
         

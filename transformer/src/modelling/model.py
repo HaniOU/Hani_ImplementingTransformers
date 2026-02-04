@@ -41,7 +41,7 @@ class TransformerModel(nn.Module):
         self.embedding = WordEmbedding(vocab_size, d_model)
         
         if not use_rope:
-            self.positional_encoding = PositionalEncoding(d_model, max_len)
+            self.positional_encoding = PositionalEncoding(d_model, max_len, dropout=dropout)
         else:
             self.positional_encoding = None
         

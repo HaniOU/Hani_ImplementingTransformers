@@ -46,7 +46,8 @@ class BaseTransformerLayer(nn.Module):
             num_heads=num_heads,
             mask_future=False,
             use_rope=use_rope,
-            max_seq_len=max_seq_len
+            max_seq_len=max_seq_len,
+            dropout=dropout
         )
         
         if use_swiglu:
@@ -101,7 +102,8 @@ class TransformerDecoderLayer(nn.Module):
             num_heads=num_heads,
             mask_future=True,
             use_rope=use_rope,
-            max_seq_len=max_seq_len
+            max_seq_len=max_seq_len,
+            dropout=dropout
         )
         
         self.encoder_attention = MultiHeadAttention(
@@ -109,7 +111,8 @@ class TransformerDecoderLayer(nn.Module):
             num_heads=num_heads,
             mask_future=False,
             use_rope=False,  # Cross-attention typically doesn't use RoPE
-            max_seq_len=max_seq_len
+            max_seq_len=max_seq_len,
+            dropout=dropout
         )
         
         if use_swiglu:

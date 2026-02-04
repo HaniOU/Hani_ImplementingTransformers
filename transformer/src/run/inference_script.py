@@ -34,7 +34,7 @@ BATCH_SIZE = 64
 LEARNING_RATE = 1.0
 WARMUP_STEPS = 4000
 GRAD_CLIP = 1.0
-WEIGHT_DECAY = 0.01
+WEIGHT_DECAY = 0.1
 
 NUM_TRAIN_SAMPLES = 5_900_000
 NUM_VAL_SAMPLES = 2500      
@@ -144,7 +144,7 @@ bleu = sacrebleu.corpus_bleu(predictions, [references])
 print("\n" + "="*50)
 print("BLEU SCORE RESULTS")
 print("="*50)
-print(f"BLEU Score: {bleu.score:.4f}  (= {bleu.score*100:.2f})")
+print(f"BLEU Score: {bleu.score:.4f}")
 print(f"Precisions: {[f'{p:.4f}' for p in bleu.precisions]}")
 print(f"Brevity Penalty: {bleu.bp:.4f}")
 print(f"Length Ratio: {bleu.sys_len / bleu.ref_len:.4f}")

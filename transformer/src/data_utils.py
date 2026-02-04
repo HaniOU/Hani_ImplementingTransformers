@@ -40,7 +40,7 @@ def collate_batch(batch: List[Dict], pad_idx: int = 0, bos_idx: int = 1, eos_idx
         src_ids = item['src_ids']
         tgt_ids = item['tgt_ids']
         
-        src_batch.append(src_ids)
+        src_batch.append([bos_idx] + src_ids + [eos_idx])  # BOS + source + EOS
         tgt_input_batch.append([bos_idx] + tgt_ids)  # BOS + target
         tgt_output_batch.append(tgt_ids + [eos_idx])  # target + EOS
     

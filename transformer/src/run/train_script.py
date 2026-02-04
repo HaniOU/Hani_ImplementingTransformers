@@ -8,15 +8,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from datasets import load_dataset
-from tqdm import tqdm
-import evaluate
-import matplotlib.pyplot as plt
-import wandb
 
 from modelling.model import TransformerModel
 from modelling.scheduler import NoamScheduler, configure_optimizers
 from modelling.trainer import Trainer
-from data_utils import clean_text_pair, collate_batch, clean_split
+from data_utils import collate_batch, clean_split
 from dataset import TranslationDataset
 from tokenizer import GPT2BPETokenizer
 
@@ -44,7 +40,7 @@ BATCH_SIZE = 64
 LEARNING_RATE = 1.0
 WARMUP_STEPS = 4000
 GRAD_CLIP = 1.0
-WEIGHT_DECAY = 0.01
+WEIGHT_DECAY = 0.1
 
 NUM_TRAIN_SAMPLES = 5_900_000
 NUM_VAL_SAMPLES = 2900      
