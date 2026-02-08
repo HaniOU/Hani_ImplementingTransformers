@@ -326,4 +326,5 @@ TEST_DATA = [
 )
 def test_attention(encoding_layer, input, expected):
     """Test the Positional Encoding layer."""
+    encoding_layer.eval()  
     assert torch.allclose(encoding_layer(input), expected)

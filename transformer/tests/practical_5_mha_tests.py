@@ -106,6 +106,7 @@ def test_multi_head_attention(mha_layer, query, value, attention_mask, expected)
     """Test the Multi-head Attention layer."""
     # Load pre-defined state dictionary into the multi-head attention layer
     mha_layer.load_state_dict(STATE_DICT)
+    mha_layer.eval()  # Disable dropout for deterministic testing
 
     assert torch.allclose(
         mha_layer(query, value, value, attention_mask),
