@@ -88,12 +88,9 @@ def clean_split(data, max_samples, min_seq_len, max_seq_len_filter, desc="Cleani
     return cleaned
 
 def translate(model, tokenizer, src_text, max_len=50, device="cpu", debug=False):
-    """Übersetzt einen deutschen Satz ins Englische (Beam Search)."""
-    # Source tokenisieren
-    src_ids = tokenizer.encode(src_text)
+    src_ids = [tokenizer.bos_id] + tokenizer.encode(src_text) + [tokenizer.eos_id]
     src_tensor = torch.tensor([src_ids], device=device)
     
-    # Greedy decoding (generate_greedy) - besser für untertrainierte Modelle
     output_ids = model.generate(
         src=src_tensor,
         bos_idx=tokenizer.bos_id,
@@ -101,7 +98,6 @@ def translate(model, tokenizer, src_text, max_len=50, device="cpu", debug=False)
         max_length=max_len
     )
     
-    # Zu Liste konvertieren und dekodieren
     output_list = output_ids[0].tolist()
     
     if debug:

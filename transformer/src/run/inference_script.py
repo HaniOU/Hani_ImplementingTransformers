@@ -44,7 +44,7 @@ MAX_SEQ_LEN_FILTER = 100
 
 num_examples = 10
 
-CHECKPOINT_PATH = '../checkpoints/best_model_5.pt'
+CHECKPOINT_PATH = '../checkpoints/model5.pt'
 TOKENIZER_PATH = '../tokenizer_artifacts.json'
 
 if torch.cuda.is_available():
@@ -139,7 +139,7 @@ for src_text, ref_text in tqdm(test_pairs, desc="Generating translations"):
 
 #bleu = evaluate.load("bleu")
 #results = bleu.compute(predictions=predictions, references=references)
-bleu = sacrebleu.corpus_bleu(predictions, [references])
+bleu = sacrebleu.corpus_bleu(predictions, [references], lowercase=True)
 
 print("\n" + "="*50)
 print("BLEU SCORE RESULTS")

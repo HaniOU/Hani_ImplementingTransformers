@@ -130,7 +130,6 @@ class TransformerDecoderLayer(nn.Module):
         self.layer_norm_2 = nn.LayerNorm(input_dim)
         self.layer_norm_3 = nn.LayerNorm(input_dim)
         
-        # Dropout
         self.dropout = nn.Dropout(dropout)
         
     def forward(
